@@ -74,11 +74,6 @@ static void espcomm_enter_boot(void)
     espcomm_board_reset_into_bootloader(espcomm_board);
 }
 
-static void espcomm_reset_to_exec(void)
-{
-    espcomm_board_reset_into_app(espcomm_board);
-}
-
 uint32_t espcomm_calc_checksum(unsigned char *data, uint16_t data_size)
 {
     uint16_t cnt;
