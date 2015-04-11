@@ -350,7 +350,9 @@ int serialport_open(const char *device, unsigned int baudrate)
         return 0;
     }
     
+#ifdef CRTSCTS
     term.c_cflag &= ~CRTSCTS;
+#endif
     
     if (tcsetattr(serial_port, TCSANOW, &term)!=0)
     {
