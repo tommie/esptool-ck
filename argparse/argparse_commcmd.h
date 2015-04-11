@@ -1,8 +1,8 @@
 /**********************************************************************************
  **********************************************************************************
  ***
- ***    infohelper.h
- ***    - defines and prototypes for a crude verbositiy-controllabe info output
+ ***    argparse_commcmd.h
+ ***    - include file for the comm-commands argument parser
  ***
  ***    Copyright (C) 2014 Christian Klippel <ck@atelier-klippel.de>
  ***
@@ -22,39 +22,9 @@
  ***
  **/
 
-#ifndef INFOHELPER_H
-#define INFOHELPER_H
+#ifndef ARGPARSE_COMMCMD_H
+#define ARGPARSE_COMMCMD_H
 
-
-/*
-** set verbositiy level
-** 0 = only error messages
-** 1 = warnings
-** 2 = information messages (default)
-** 3 = debugging info
-** 4 = extra debugging info
-*/
-void infohelper_set_infolevel(char lvl);
-
-/*
-** increase verbositylevel by 1
-*/
-void infohelper_increase_infolevel(void);
-
-/*
-** set verbosity level according to arguments given
-*/
-void infohelper_set_argverbosity(int num_args, char **arg_ptr);
-
-void infohelper_output(int loglevel, const char* format, ...);
-void infohelper_output_plain(int loglevel, const char* format, ...);
-
-#define LOGERR(...) infohelper_output(0, __VA_ARGS__)
-#define LOGWARN(...) infohelper_output(1, __VA_ARGS__)
-#define LOGINFO(...) infohelper_output(2, __VA_ARGS__)
-#define LOGDEBUG(...) infohelper_output(3, __VA_ARGS__)
-#define LOGVERBOSE(...) infohelper_output(4, __VA_ARGS__)
-
-#define INFO(...) infohelper_output_plain(0, __VA_ARGS__)
+int argparse_commcmd(int num_args, char **arg_ptr);
 
 #endif

@@ -1,11 +1,35 @@
-#include "stdio.h"
+/**********************************************************************************
+ **********************************************************************************
+ ***
+ ***    argparse_binimagecmd.c
+ ***    - parsing of command related to binary flash image functions
+ ***
+ ***    Copyright (C) 2014 Christian Klippel <ck@atelier-klippel.de>
+ ***
+ ***    This program is free software; you can redistribute it and/or modify
+ ***    it under the terms of the GNU General Public License as published by
+ ***    the Free Software Foundation; either version 2 of the License, or
+ ***    (at your option) any later version.
+ ***
+ ***    This program is distributed in the hope that it will be useful,
+ ***    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ***    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ***    GNU General Public License for more details.
+ ***
+ ***    You should have received a copy of the GNU General Public License along
+ ***    with this program; if not, write to the Free Software Foundation, Inc.,
+ ***    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ ***
+ **/
+ 
+#include <stdio.h>
+#include <stdint.h>
 #include "infohelper.h"
 #include "esptool_elf.h"
 #include "esptool_elf_object.h"
 #include "esptool_binimage.h"
 
-
-static int argparse_binimagecmd_add_segment(unsigned char *sname, uint32_t padsize)
+static int argparse_binimagecmd_add_segment(const char *sname, uint32_t padsize)
 {
     uint32_t snum;
     uint32_t addr;
@@ -29,12 +53,12 @@ static int argparse_binimagecmd_add_segment(unsigned char *sname, uint32_t padsi
         if(pad > size)
         {
             binimage_add_segment(get_elf_section_addr(snum), pad, get_elf_section_bindata(snum, pad));
-            iprintf(2, "added section %s at 0x%08X size 0x%08X with padding 0x%08X\r\n", get_elf_section_name(snum), addr, size, pad-size);
+            LOGINFO("added section %s at 0x%08X size 0x%08X with padding 0x%08X", get_elf_section_name(snum), addr, size, pad-size);
         }
         else
         {
             binimage_add_segment(get_elf_section_addr(snum), size, get_elf_section_bindata(snum, size));
-            iprintf(2, "added section %s at 0x%08X size 0x%08X\r\n", get_elf_section_name(snum), addr, size);
+            LOGINFO("added section %s at 0x%08X size 0x%08X", get_elf_section_name(snum), addr, size);
         }
     }
     

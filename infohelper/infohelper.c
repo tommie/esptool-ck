@@ -26,62 +26,7 @@
 #include <stdarg.h>
 #include "infohelper.h"
 
-static char infolevel  = 1;
-
-int printf_1(int err)
-{
-    printf("**ERROR: %d\r\n", err);
-    return 0;
-}
-
-int printf_2(int error, char *string)
-{
-    if(error < -1)
-    {
-        printf("**WARNING: %s", string);
-    }
-    else if(error < 0)
-    {
-        printf("**ERROR: %s", string);
-    }
-    else if(error < infolevel)
-    {
-        printf("Info: %s", string);
-    }
-    
-    return 0;
-}
-
-int printf_3(int error, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
-
-int printf_3(int error, char *fmt, ...)
-{
-    va_list v;
-    
-
-    if(error < -1)
-    {
-        printf("**WARNING: ");
-        va_start(v, fmt);
-        vprintf(fmt, v);
-        va_end(v);
-    }
-    else if(error < 0)
-    {
-        printf("**ERROR: ");
-        va_start(v, fmt);
-        vprintf(fmt, v);
-        va_end(v);
-    }
-    else if(error < infolevel)
-    {
-        printf("Info: ");
-        va_start(v, fmt);
-        vprintf(fmt, v);
-        va_end(v);
-    }
-    return 0;
-}
+static char infolevel = 0;
 
 void infohelper_set_infolevel(char lvl)
 {
@@ -99,8 +44,6 @@ void infohelper_increase_infolevel(void)
 void infohelper_set_argverbosity(int num_args, char **arg_ptr)
 {
     char *cur_arg;
-
-    infolevel = 0;
     
     while(num_args--)
     {
@@ -119,4 +62,31 @@ void infohelper_set_argverbosity(int num_args, char **arg_ptr)
             }
         }
     }
+}
+
+void infohelper_output(int loglevel, const char* format, ...)
+{
+    if (infolevel < loglevel)
+        return;
+    const char* log_level_names[] = {"error: ", "warning: ", "", "\t", "\t\t"};
+    const int log_level_names_count = sizeof(log_level_names) / sizeof(const char*);
+    if (loglevel >= log_level_names_count)
+        loglevel = log_level_names_count - 1;
+    
+    va_list v;
+    printf("%s", log_level_names[loglevel]);
+    va_start(v, format);
+    vprintf(format, v);
+    va_end(v);
+    printf("\n");
+}
+
+void infohelper_output_plain(int loglevel, const char* format, ...)
+{
+    if (infolevel < loglevel)
+        return;
+    va_list v;
+    va_start(v, format);
+    vprintf(format, v);
+    va_end(v);
 }

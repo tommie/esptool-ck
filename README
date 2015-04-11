@@ -1,5 +1,7 @@
-esptool is a tool to allow the creation and handling of firmware
-files suitable for the ESP8266 chip.
+esptool is a tool to allow the creation of firmware files suitable 
+for the ESP8266 chip, and flashing those file to the chip.
+
+esptool runs on Windows, Linux and Mac OS X.
 
 It can read a code file in the ELF format that the compilers produce.
 From there it is possible to extract various sections that are present
@@ -12,10 +14,14 @@ given on the commandline, and in the order they are given.
 
 The following commands are currently available:
 
--eo <filename> :        Opens an ELF object file, parses it and caches
+-eo <filename>          Opens an ELF object file, parses it and caches
                         some of the information found therein.
                         Only works if there is no ELF file currently
                         opened.
+
+-d <section> <filename> Reads the given section from the ELF file
+                        and makes a raw dump into the specified
+                        file.
 
 -ec                     Closes the currently opened ELF file
 
@@ -33,11 +39,34 @@ The following commands are currently available:
 -bc                     Closes the firmware image and saves the result
                         as file to disk.
 
--d <section> <filename> Reads the given section from the ELF file
-                        and makes a raw dump into the specified
-                        file.
-
 -v                      Increase verbosity level of the tool
+                        Add more v's to increase it more, e.g.
+                        -vv, -vvv.
+
+-q                      Disable most of the output.
+
+-cp <device>            Select the serial port device to use for
+                        communicating with the ESP.
+                        Default is /dev/ttyUSB0 on Linux, 
+                        COM1 on Windows, /dev/tty.usbserial on Mac OS X.
+
+-cd <board>             Select the reset method to use for resetting
+                        the board. Currently supported methods are:
+
+        none            No DTR/RTS manipulation
+
+        ck              RTS controls RESET or CH_PD, DTR controls GPIO0
+
+        wifio           DTR controls GPIO0 via PNP transistor and RESET
+                        via a capacitor
+
+-cb <baudrate>          Select the baudrate to use, default is 115200
+
+-ca <address>           Address in flash memory to upload the data to
+                        This Address is interpreted as hexadecimal
+                        Default is 0x00000000
+
+-cf <filename>          Upload the file "filename" to flash memory
 
 When creating firmware images, the tool will automatically set the
 required addresses, size-fields, etc. according to what it finds
@@ -48,3 +77,7 @@ the main header is set accordingly. Sections appear in the
 firmware image in the exact same order as the -bs commands
 are executed.
 
+Parameters are executed in the order they appear. That means
+that if, for example, you want a different port or baudrate
+for the flash-upload, those parameters must appear befor
+the -cf parameter.

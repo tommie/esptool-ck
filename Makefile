@@ -1,5 +1,5 @@
-TARGET_ARCH	= LINUX 
-CFLAGS		= -Os
+TARGET_ARCH	?= LINUX
+CFLAGS		= -std=c99 -Os -Wall
 SDK_LIBDIR	=
 SDK_LIBS	=
 SDK_INCLUDES	=
@@ -7,7 +7,7 @@ SDK_INCLUDES	=
 CC		:= gcc
 LD		:= gcc
 
-MODULES		:= infohelper elf binimage argparse
+MODULES		:= infohelper elf binimage argparse serialport espcomm
 
 
 -include local/Makefile.local.$(TARGET_ARCH)
@@ -17,6 +17,8 @@ BUILD_DIR	:= $(addprefix build/,$(MODULES))
 SRC		:= $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
 OBJ		:= $(patsubst %.c,build/%.o,$(SRC))
 INCLUDES	:= $(addprefix -I,$(SRC_DIR))
+
+CFLAGS += $(TARGET_CFLAGS)
 
 vpath %.c $(SRC_DIR)
 

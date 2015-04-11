@@ -1,10 +1,10 @@
 /**********************************************************************************
  **********************************************************************************
  ***
- ***    argparse_elfcmd.h
- ***    - include file for the ELF object commands argument parser
+ ***    delay.h
+ ***    - cross-platform delay function
  ***
- ***    Copyright (C) 2014 Christian Klippel <ck@atelier-klippel.de>
+ ***    Copyright (C) 2015 Ivan Grokhotkov
  ***
  ***    This program is free software; you can redistribute it and/or modify
  ***    it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@
  ***
  **/
 
-#ifndef ARGPARSE_ELFCMD_H
-#define ARGPARSE_ELFCMD_H
 
-int argparse_elfcmd(int num_args, char **arg_ptr);
+ #ifndef DELAY_H
+ #define DELAY_H
 
-#endif
+void espcomm_delay_ms(int ms);
+
+ #endif//DELAY_H

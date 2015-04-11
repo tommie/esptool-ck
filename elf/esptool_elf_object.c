@@ -22,7 +22,7 @@
  ***
  **/
 #include <stdlib.h>
-
+#include <string.h>
 #include "infohelper.h"
 #include "esptool_elf.h"
 #include "esptool_elf_object.h"
@@ -34,7 +34,7 @@ static int check_elf_header(void)
 {
     if(fread( (char*) &e_object.header, 1, sizeof(Elf32_Ehdr), e_object.e_file) != sizeof(Elf32_Ehdr))
     {
-        iprintf(-1, "can't read ELF file header\r\n");
+        LOGERR("can't read ELF file header");
         return 0;
     }
         
@@ -56,36 +56,36 @@ void get_elf_strings(void)
     {
         if(fseek(e_object.e_file, e_object.header.e_shoff+(e_object.header.e_shstrndx*e_object.header.e_shentsize), SEEK_SET) != 0)
         {
-            iprintf(-1, "can't seek to stringtable section info in ELF file\r\n");
+            LOGERR("can't seek to stringtable section info in ELF file");
             return;
         }
         
         if(fread((char*)&e_object.section, 1, sizeof(Elf32_Shdr), e_object.e_file) != sizeof(Elf32_Shdr) )
         {
-            iprintf(-1, "can't read stringtable section info from ELF file!\r\n");
+            LOGERR("can't read stringtable section info from ELF file!");
             return;
         }
  
         if(e_object.section.sh_size)
         {
-            iprintf(1, "loading string table from ELF file\r\n");
+            LOGDEBUG("loading string table from ELF file");
             e_object.strings = malloc(e_object.section.sh_size);
             
             if(e_object.strings == NULL)
             {
-                iprintf(-1, "can't malloc memory for stringtable of ELF file\r\n");
+                LOGERR("can't malloc memory for stringtable of ELF file");
                 return;
             }
             
             if(fseek(e_object.e_file, e_object.section.sh_offset, SEEK_SET) != 0)
             {
-                iprintf(-1, "can't seek to stringtable section info in ELF file\r\n");
+                LOGERR("can't seek to stringtable section info in ELF file");
                 return;
             }
             
             if( fread(e_object.strings, 1, e_object.section.sh_size, e_object.e_file) != e_object.section.sh_size)
             {
-                iprintf(-1, "can't read stringtable from ELF file!\r\n");
+                LOGERR("can't read stringtable from ELF file!");
                 return;
             }
 
@@ -102,7 +102,7 @@ void collect_elf_sections(void)
     e_object.sections = malloc(e_object.header.e_shnum*sizeof(ELF_section));
     if(e_object.sections == NULL)
     {
-        iprintf(-1, "can't malloc memory for ELF section list\r\n");
+        LOGERR("can't malloc memory for ELF section list");
         return;
     }
     
@@ -110,18 +110,18 @@ void collect_elf_sections(void)
     {
         if(e_object.header.e_shnum)
         {
-            iprintf(1, "building ELF section list\r\n");
+            LOGDEBUG("building ELF section list");
             for(cnt = 1; cnt < e_object.header.e_shnum; cnt++)
             {
                 if(fseek(e_object.e_file, e_object.header.e_shoff+(cnt*e_object.header.e_shentsize), SEEK_SET) != 0)
                 {
-                    iprintf(-1, "can't seek to ELF file section info #%i\r\n", cnt);
+                    LOGERR("can't seek to ELF file section info #%i", cnt);
                     return;
                 }
                 
                 if(fread((char*)&e_object.section, 1, sizeof(Elf32_Shdr), e_object.e_file) != sizeof(Elf32_Shdr))
                 {
-                    iprintf(-1, "can't read section info #%i from ELF file\r\n", cnt);
+                    LOGERR("can't read section info #%i from ELF file", cnt);
                     return;
                 }
                 
@@ -138,16 +138,16 @@ void collect_elf_sections(void)
                 e_object.sections[cnt-1].address = e_object.section.sh_addr;
                 e_object.sections[cnt-1].size = e_object.section.sh_size;
             }
-            iprintf(1, "ELF section list created: %i entries\r\n", e_object.header.e_shnum-1);
+            LOGDEBUG("ELF section list created: %i entries", e_object.header.e_shnum-1);
         }
         else
         {
-            iprintf(1, "no sections in ELF object\r\n");
+            LOGDEBUG("no sections in ELF object");
         }
     }
     else
     {
-        iprintf(-1, "can't malloc memory for ELF sections list\r\n");
+        LOGERR("can't malloc memory for ELF sections list");
     }
 }
 
@@ -156,7 +156,7 @@ void list_elf_sections(void)
     unsigned int cnt;
     for(cnt = 1; cnt < e_object.header.e_shnum; cnt++)
     {
-        iprintf(2, "ADDR: 0x%08X - SIZE: 0x%08X - OFFSET: 0x%08X - Name: %s\r\n", e_object.sections[cnt-1].address, 
+        LOGVERBOSE("ADDR: 0x%08X - SIZE: 0x%08X - OFFSET: 0x%08X - Name: %s", e_object.sections[cnt-1].address, 
                                                                                   e_object.sections[cnt-1].size, 
                                                                                   e_object.sections[cnt-1].offset, 
                                                                                   e_object.sections[cnt-1].name);
@@ -169,35 +169,34 @@ void print_elf_section_info(Elf32_Half secnum)
     {
         if(fseek(e_object.e_file, e_object.header.e_shoff+(secnum*e_object.header.e_shentsize), SEEK_SET) != 0) 
         {
-            iprintf(-1, "can't seek to ELF file section info #i\r\n", secnum);
+            LOGERR("can't seek to ELF file section info %i", secnum);
             return;
         }
         
         if(fread((char*)&e_object.section, 1, sizeof(Elf32_Shdr), e_object.e_file) != sizeof(Elf32_Shdr))
         {
-            iprintf(-1, "can't read ELF file section info #i\r\n", secnum);
+            LOGERR("can't read ELF file section info %i", secnum);
             return;
         }
         
         if(e_object.section.sh_name)
         {
-            iprintf(2, "section name    : %s\r\n",  e_object.strings+e_object.section.sh_name);
+            LOGVERBOSE("section name    : %s",  e_object.strings+e_object.section.sh_name);
         }
         else
         {
-            iprintf(2, "section name    : <NONE>\r\n");
+            LOGVERBOSE("section name    : <NONE>");
         }
-        iprintf(2, "sh_name         : 0x%08X\r\n", e_object.section.sh_name);
-        iprintf(2, "sh_type         : 0x%08X\r\n", e_object.section.sh_type);
-        iprintf(2, "sh_flags        : 0x%08X\r\n", e_object.section.sh_flags);
-        iprintf(2, "sh_addr         : 0x%08X\r\n", e_object.section.sh_addr);
-        iprintf(2, "sh_offset       : 0x%08X\r\n", e_object.section.sh_offset);
-        iprintf(2, "sh_size         : 0x%08X\r\n", e_object.section.sh_size);
-        iprintf(2, "sh_link         : 0x%08X\r\n", e_object.section.sh_link);
-        iprintf(2, "sh_info         : 0x%08X\r\n", e_object.section.sh_info);
-        iprintf(2, "sh_addralign    : 0x%08X\r\n", e_object.section.sh_addralign);
-        iprintf(2, "sh_entsize      : 0x%08X\r\n", e_object.section.sh_entsize);
-        iprintf(2, "\r\n");
+        LOGVERBOSE("sh_name         : 0x%08X", e_object.section.sh_name);
+        LOGVERBOSE("sh_type         : 0x%08X", e_object.section.sh_type);
+        LOGVERBOSE("sh_flags        : 0x%08X", e_object.section.sh_flags);
+        LOGVERBOSE("sh_addr         : 0x%08X", e_object.section.sh_addr);
+        LOGVERBOSE("sh_offset       : 0x%08X", e_object.section.sh_offset);
+        LOGVERBOSE("sh_size         : 0x%08X", e_object.section.sh_size);
+        LOGVERBOSE("sh_link         : 0x%08X", e_object.section.sh_link);
+        LOGVERBOSE("sh_info         : 0x%08X", e_object.section.sh_info);
+        LOGVERBOSE("sh_addralign    : 0x%08X", e_object.section.sh_addralign);
+        LOGVERBOSE("sh_entsize      : 0x%08X", e_object.section.sh_entsize);
     }
 }
 
@@ -206,7 +205,7 @@ int get_elf_num_sections(void)
     return e_object.header.e_shnum;
 }
 
-int get_elf_secnum_by_name(unsigned char *secname)
+int get_elf_secnum_by_name(const char *secname)
 {
     unsigned int cnt;
     
@@ -214,7 +213,7 @@ int get_elf_secnum_by_name(unsigned char *secname)
     {
         if( strcmp(e_object.sections[cnt-1].name, secname) == 0)
         {
-            iprintf(2, "found section %s at index %i\r\n", secname, cnt);
+            LOGVERBOSE("found section %s at index %i", secname, cnt);
             return cnt;
         }
     }
@@ -232,7 +231,7 @@ unsigned char* get_elf_section_bindata(Elf32_Half secnum, uint32_t pad_to)
         {
             if(e_object.sections[secnum-1].size < pad_to)
             {
-                iprintf(2, "padding section #%i binary data (size 0x%08X) with %i bytes\r\n", secnum, e_object.sections[secnum-1].size, (pad_to-e_object.sections[secnum-1].size));
+                LOGVERBOSE("padding section #%i binary data (size 0x%08X) with %i bytes", secnum, e_object.sections[secnum-1].size, (pad_to-e_object.sections[secnum-1].size));
                 bindata = malloc(pad_to);
             }
             else
@@ -242,20 +241,20 @@ unsigned char* get_elf_section_bindata(Elf32_Half secnum, uint32_t pad_to)
             
             if(bindata == NULL)
             {
-                iprintf(-1, "can't malloc memory for ELF section #i binary data\r\n", secnum);
+                LOGERR("can't malloc memory for ELF section %d binary data", secnum);
                 return 0;
             }
             
             if(fseek(e_object.e_file, e_object.sections[secnum-1].offset, SEEK_SET) != 0)
             {
-                iprintf(-1, "can't seek to ELF file section %i binary datai\r\n", secnum);
-                return;
+                LOGERR("can't seek to ELF file section %i binary datai", secnum);
+                return 0;
             }
             
             if(fread(bindata, 1, e_object.sections[secnum-1].size, e_object.e_file) != e_object.sections[secnum-1].size)
             {
-                iprintf(-1, "can't read section #%i binary data from ELF file\r\n", secnum);
-                return;
+                LOGERR("can't read section #%i binary data from ELF file", secnum);
+                return 0;
             }
             
             
@@ -271,7 +270,7 @@ unsigned char* get_elf_section_bindata(Elf32_Half secnum, uint32_t pad_to)
     return 0;
 }
 
-int save_elf_section_bindata( unsigned char *secname, unsigned char *fname )
+int save_elf_section_bindata( const char *secname, const char *fname )
 {
     FILE *f;
     unsigned char *binblob;
@@ -286,14 +285,14 @@ int save_elf_section_bindata( unsigned char *secname, unsigned char *fname )
         f = fopen( fname, "wb" );
         if(f == NULL)
         {
-            iprintf(-1, "can't open file \"%s\" to save binary dump of ELF section \"%s\"\r\n", fname, e_object.sections[secnum-1].name);
+            LOGERR("can't open file \"%s\" to save binary dump of ELF section \"%s\"", fname, e_object.sections[secnum-1].name);
             free(binblob);
             return 0;
         }
         
         if( fwrite(binblob, 1, e_object.sections[secnum-1].size, f) != e_object.sections[secnum-1].size)
         {
-            iprintf(-1, "can't open file \"%s\" to save binary dump of ELF section \"%s\"\r\n", fname, e_object.sections[secnum-1].name);
+            LOGERR("can't open file \"%s\" to save binary dump of ELF section \"%s\"", fname, e_object.sections[secnum-1].name);
             fclose(f);
             free(binblob);
             return 0;
@@ -302,7 +301,7 @@ int save_elf_section_bindata( unsigned char *secname, unsigned char *fname )
         fclose(f);
         free(binblob);
         
-        iprintf(0, "saved section \"%s\" to file \"%s\"\r\n", e_object.sections[secnum-1].name, fname);
+        LOGINFO("saved section \"%s\" to file \"%s\"", e_object.sections[secnum-1].name, fname);
     }
     return 1;
 }
@@ -325,7 +324,7 @@ Elf32_Word get_elf_section_addr(Elf32_Half secnum)
     return 0;
 }
 
-unsigned char* get_elf_section_name(Elf32_Half secnum)
+const char* get_elf_section_name(Elf32_Half secnum)
 {
     if(secnum && secnum < e_object.header.e_shnum)
     {
@@ -339,7 +338,7 @@ Elf32_Word get_elf_entry(void)
     return e_object.header.e_entry;
 }
 
-int create_elf_object(unsigned char *filename)
+int create_elf_object(const char *filename)
 {
     if(e_object.e_file)
     {
@@ -353,27 +352,25 @@ int create_elf_object(unsigned char *filename)
     
     if(e_object.e_file)
     {
-        iprintf(0, "using ELF file \"%s\"\r\n", filename);
+        LOGINFO("using ELF file \"%s\"", filename);
 
         if( check_elf_header() )
         {
-            iprintf(2, "ELF header OK\r\n\r\n");
+            LOGDEBUG("ELF header OK");
             
-            iprintf(2, "e_type      : 0x%04X\r\n", e_object.header.e_type);
-            iprintf(2, "e_machine   : 0x%04X\r\n", e_object.header.e_machine);
-            iprintf(2, "e_version   : 0x%08X\r\n", e_object.header.e_version);
-            iprintf(2, "e_entry     : 0x%08X\r\n", e_object.header.e_entry);
-            iprintf(2, "e_phoff     : 0x%08X\r\n", e_object.header.e_phoff);
-            iprintf(2, "e_shoff     : 0x%08X\r\n", e_object.header.e_shoff);
-            iprintf(2, "e_flags     : 0x%08X\r\n", e_object.header.e_flags);
-            iprintf(2, "e_ehsize    : 0x%04X\r\n", e_object.header.e_ehsize);
-            iprintf(2, "e_phentsize : 0x%04X\r\n", e_object.header.e_phentsize);
-            iprintf(2, "e_phnum     : 0x%04X\r\n", e_object.header.e_phnum);
-            iprintf(2, "e_shentsize : 0x%04X\r\n", e_object.header.e_shentsize);
-            iprintf(2, "e_shnum     : 0x%04X\r\n", e_object.header.e_shnum);
-            iprintf(2, "e_shstrndx  : 0x%04X\r\n", e_object.header.e_shstrndx);
-            
-            iprintf(2, "\r\n");
+            LOGVERBOSE("e_type      : 0x%04X", e_object.header.e_type);
+            LOGVERBOSE("e_machine   : 0x%04X", e_object.header.e_machine);
+            LOGVERBOSE("e_version   : 0x%08X", e_object.header.e_version);
+            LOGVERBOSE("e_entry     : 0x%08X", e_object.header.e_entry);
+            LOGVERBOSE("e_phoff     : 0x%08X", e_object.header.e_phoff);
+            LOGVERBOSE("e_shoff     : 0x%08X", e_object.header.e_shoff);
+            LOGVERBOSE("e_flags     : 0x%08X", e_object.header.e_flags);
+            LOGVERBOSE("e_ehsize    : 0x%04X", e_object.header.e_ehsize);
+            LOGVERBOSE("e_phentsize : 0x%04X", e_object.header.e_phentsize);
+            LOGVERBOSE("e_phnum     : 0x%04X", e_object.header.e_phnum);
+            LOGVERBOSE("e_shentsize : 0x%04X", e_object.header.e_shentsize);
+            LOGVERBOSE("e_shnum     : 0x%04X", e_object.header.e_shnum);
+            LOGVERBOSE("e_shstrndx  : 0x%04X", e_object.header.e_shstrndx);
             
             get_elf_strings();
             collect_elf_sections();
@@ -382,12 +379,12 @@ int create_elf_object(unsigned char *filename)
         }
         else
         {
-            iprintf(-1, "wrong header for ELF file!\r\n");
+            LOGERR("wrong header for ELF file!");
         }
     }
     else
     {
-        iprintf(-1, "can't open ELF file %s\r\n", filename);
+        LOGERR("can't open ELF file %s", filename);
     }
     
     return 0;
@@ -397,21 +394,21 @@ int close_elf_object(void)
 {
     if(e_object.strings)
     {
-        iprintf(2, "releasing memory from ELF file stringtable\r\n");
+        LOGDEBUG("releasing memory from ELF file stringtable");
         free(e_object.strings);
         e_object.strings = 0;
     }
     
     if(e_object.sections)
     {
-        iprintf(2, "releasing memory from ELF file section info\r\n");
+        LOGDEBUG("releasing memory from ELF file section info");
         free(e_object.sections);
         e_object.sections = 0;
     }
 
     if(e_object.e_file)
     {
-        iprintf(2, "closing ELF file\r\n");
+        LOGDEBUG("closing ELF file");
         fclose(e_object.e_file);
         e_object.e_file = 0;
     }

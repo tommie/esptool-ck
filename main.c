@@ -29,12 +29,15 @@
 
 #include "infohelper.h"
 #include "argparse.h"
+#include "espcomm.h"
+#include "elf/esptool_elf.h"
+#include "elf/esptool_elf_object.h"
+#include "binimage/esptool_binimage.h"
 
 int main(int argc, char **argv)
 {
     int num_args;
     int num_args_parsed;
-    int cur_arg;
     char **arg_ptr;
     
     num_args = argc-1;
@@ -43,15 +46,13 @@ int main(int argc, char **argv)
     
     if(argc < 2)
     {
-        printf("**ERROR: No arguments given. Exiting...\r\n\r\n");
+        LOGERR("No arguments given");
         return 0;
     }
-
+	infohelper_set_infolevel(1);
     infohelper_set_argverbosity(num_args, arg_ptr);
     
-    iprintf(0, "esptool v0.0.2 - (c) 2014 Ch. Klippel <ck@atelier-klippel.de>\r\n");
-    iprintf(0, "This program is licensed under the GPL v2\r\n");
-    iprintf(0, "See the file LICENSE for details\r\n\r\n");
+    LOGINFO("esptool v0.0.3a - (c) 2014 Ch. Klippel <ck@atelier-klippel.de>");
     
     while(num_args)
     {
@@ -64,8 +65,11 @@ int main(int argc, char **argv)
         num_args -= num_args_parsed;
         arg_ptr += num_args_parsed;
     }
-
-    iprintf(0, "\r\n");
+    
+    if (espcomm_file_uploaded())
+    {
+        espcomm_start_app(0);
+    }
     close_elf_object();
     binimage_write_close(16);
     return 0;
@@ -73,5 +77,5 @@ int main(int argc, char **argv)
 EXITERROR:
     close_elf_object();
     binimage_write_close(16);
-    exit -1;
+    return -1;
 }

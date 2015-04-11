@@ -68,7 +68,7 @@ typedef struct {
 ** entry: the code entry point address
 ** returns 1 on success, 0 on failure
 */
-int binimage_prepare(unsigned char *fname, uint32_t entry);
+int binimage_prepare(const char *fname, uint32_t entry);
 
 /*
 ** specify a new code entry address
