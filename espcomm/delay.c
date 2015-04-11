@@ -33,10 +33,15 @@ void espcomm_delay_ms(int ms)
 
 
 #else
+#include <time.h>
 
 void espcomm_delay_ms(int ms)
 {
-    usleep(ms * 1000);
+    struct timespec ts;
+
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000L;
+    nanosleep(&ts, NULL);
 }
 
 
