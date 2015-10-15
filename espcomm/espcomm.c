@@ -275,7 +275,7 @@ int espcomm_start_flash(uint32_t size, uint32_t address)
     send_packet.checksum = espcomm_calc_checksum((unsigned char*) flash_packet, 16);
     int delay = size / 1000 * 3 + 500;
     LOGDEBUG("calculated erase delay: %d", delay);
-    res = espcomm_send_command(FLASH_DOWNLOAD_BEGIN, (unsigned char*) &flash_packet, 16, 1000);
+    res = espcomm_send_command(FLASH_DOWNLOAD_BEGIN, (unsigned char*) &flash_packet, 16, delay);
     return res;
 }
 
